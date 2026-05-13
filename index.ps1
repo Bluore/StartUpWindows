@@ -1,6 +1,40 @@
-echo "-> 安装scoop"
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+param(
+    [switch]$adminPhase
+)
+
+function Is-Admin {
+    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
+    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+if (-not $adminPhase -and -not (Is-Admin)) {
+    # 非管理员
+    scoop -v > $null
+    if (-not $?) {
+        echo "-> 安装scoop"
+        Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+        Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+    }
+    
+    # 提升权限运行
+    echo "-> 即将提升到管理员权限运行"
+    ping 127.0.0.1 -n 4 > $null
+    Start-Process pwsh -Verb RunAs -ArgumentList @(
+        "-NoProfile",
+        "-ExecutionPolicy Bypass",
+        "-File `"$PSCommandPath`"",
+        "-adminPhase"
+    )
+
+    exit
+}
+
+scoop -v > $null
+if (-not $?){
+    echo "-> 请先通过非管理员权限运行!"
+    exit
+}
 
 echo "-> 安装基础开发环境"
 scoop install nodejs gcc mingw vim neovim python uv go lua yazi btop docker
@@ -37,7 +71,7 @@ if ($isCheangeTerminal -eq "y"){
     winget install JanDeDobbeleer.OhMyPosh --source winget
     oh-my-posh font install CascadiaCode
     New-Item -Path $PROFILE -Type File -Force
-    "oh-my-posh init pwsh | Invoke-Expression" > $PROFILE
+    Add-Content -Path $PROFILE -Value "oh-my-posh init pwsh | Invoke-Expression"
     echo "-> 正在修改脚本执行策略为 RemoteSigned "
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine 
 }
