@@ -18,7 +18,7 @@ if (-not $adminPhase -and -not (Is-Admin)) {
     }
     
     # 提升权限运行
-    echo "-> 即将提升到管理员权限运行"
+    echo "-> 即将提升到管理员权限运行 (3s后)"
     ping 127.0.0.1 -n 4 > $null
     Start-Process pwsh -Verb RunAs -ArgumentList @(
         "-NoProfile",
@@ -36,9 +36,12 @@ if (-not $?){
     exit
 }
 
+$isSetupBaseDevEnv = Read-Host "? 是否安装基础开发环境? (y/n)"
+if ($isSetupBaseDevEnv -eq "y"){
 echo "-> 安装基础开发环境"
 scoop install nodejs gcc mingw vim neovim python uv go lua yazi btop docker
 npm install -g pnpm
+}
 
 git -v > $null
 if (-not $?){
@@ -116,3 +119,5 @@ if ($isCheangeTerminal -eq "y") {
 【网络代理】    V2ray:  https://github.com/2dust/v2rayN
 【资源管理器】  OneCommander:   https://onecommander.com/
 "@
+
+ping 127.0.0.1 -n 999999 > $null
